@@ -1,0 +1,115 @@
+import type { CodeSearchResponse } from '../hooks/search-code';
+import {
+  Table,
+  TableBody,
+  TableCaption,
+  TableCell,
+  TableFooter,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination"
+
+function getHighlightedText(fragment: string, indices: number[]) {
+  const start = fragment.substring(0, indices[0]).slice(-50);
+  const middle = fragment.substring(indices[0], indices[1]);
+  const end = fragment.substring(indices[1]).slice(0, 50);
+
+  return (
+    <>
+      {start}
+      <span className="bg-highlight text-highlight-foreground p-1 rounded-md">{middle}</span>
+      {end}
+    </>
+  );
+}
+
+interface CodeSearchProps {
+  term: string;
+  codeResults: CodeSearchResponse | null;
+  loading: boolean;
+  error: Error | null;
+  handleNextPage: (event) => Promise<void>;
+  handlePreviousPage: (event) => Promise<void>;
+}
+
+function CodeView ({
+  term,
+  codeResults,
+  loading,
+  error,
+  handleNextPage,
+  handlePreviousPage
+}: CodeSearchProps) {
+
+  return (
+    <>
+      {error && <div className="text-red-500 text-center">Error: {error.message}</div>}
+      {loading && <div className="text-center">Loading...</div>}
+      {codeResults && codeResults.items && codeResults.items.length > 0 && (
+        <>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+            <h2 className="text-left text-lg font-semibold">Code Search Results</h2>
+
+            <span></span>
+
+            <Pagination className='justify-end'>
+              <PaginationContent>
+                <PaginationItem>
+                  <PaginationPrevious onClick={handlePreviousPage} />
+                </PaginationItem>
+                <PaginationItem>
+                  <PaginationNext onClick={handleNextPage} />
+                </PaginationItem>
+              </PaginationContent>
+            </Pagination>
+          </div>
+
+          <div className='border rounded-xl shadow-sm'>
+            <Table>
+              <TableCaption>Search results for {term}</TableCaption>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className='p-4'>Repository</TableHead>
+                  <TableHead className='p-4'>Text Match</TableHead>
+                </TableRow>
+              </TableHeader>
+
+              <TableBody>
+                {codeResults.items.map((item) => (
+                    <TableRow key={item.repository.id}>
+                      <TableCell className="text-left p-4">{item.repository.url}</TableCell>
+                      {item.text_matches && item.text_matches.length > 0 ? (
+                        <TableCell className="text-left whitespace-normal p-4">{ getHighlightedText(item.text_matches[0].fragment, item.text_matches[0].matches[0].indices) }</TableCell>
+                      ) : (
+                        <TableCell className="text-left p-4">No match found</TableCell>
+                      )}
+                    </TableRow>
+                ))}
+              </TableBody>
+
+              <TableFooter>
+                <TableRow>
+                  <TableCell colSpan={5} className="text-center">
+                    Total Repositories: {codeResults?.total_count}
+                  </TableCell>
+                </TableRow>
+              </TableFooter>
+            </Table>
+          </div>
+        </>
+      )}
+    </>
+  )
+}
+
+export default CodeView;
