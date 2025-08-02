@@ -1,4 +1,4 @@
-import type { CodeSearchResponse } from '../hooks/search-code';
+import { useState } from "react";
 import {
   Table,
   TableBody,
@@ -12,12 +12,12 @@ import {
 import {
   Pagination,
   PaginationContent,
-  PaginationEllipsis,
   PaginationItem,
-  PaginationLink,
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination"
+import { useSearch } from "@/hooks/search"
+import { fetchCode } from "@/lib/fetcher";
 
 function getHighlightedText(fragment: string, indices: number[]) {
   const start = fragment.substring(0, indices[0]).slice(-50);
@@ -35,27 +35,30 @@ function getHighlightedText(fragment: string, indices: number[]) {
 
 interface CodeSearchProps {
   term: string;
-  codeResults: CodeSearchResponse | null;
-  loading: boolean;
-  error: Error | null;
-  handleNextPage: (event) => Promise<void>;
-  handlePreviousPage: (event) => Promise<void>;
+  shouldFetch: boolean;
 }
 
-function CodeView ({
-  term,
-  codeResults,
-  loading,
-  error,
-  handleNextPage,
-  handlePreviousPage
-}: CodeSearchProps) {
+function CodeView ({ term, shouldFetch }: CodeSearchProps) {
+  const [page, setPage] = useState(1);
+  const { data, isLoading, error } = useSearch(fetchCode, { key: "github-code", shouldFetch, query: term, per_page: 12, page });
+
+  const handleNextPage = () => {
+    if (data && data.total_count > page * 12) {
+      setPage(prev => prev + 1);
+    }
+  };
+
+  const handlePreviousPage = () => {
+    if (page > 1) {
+      setPage(prev => prev - 1);
+    }
+  };
 
   return (
     <>
       {error && <div className="text-red-500 text-center">Error: {error.message}</div>}
-      {loading && <div className="text-center">Loading...</div>}
-      {codeResults && codeResults.items && codeResults.items.length > 0 && (
+      {isLoading && <div className="text-center">Loading...</div>}
+      {data && data.items && data.items.length > 0 && (
         <>
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
             <h2 className="text-left text-lg font-semibold">Code Search Results</h2>
@@ -65,10 +68,16 @@ function CodeView ({
             <Pagination className='justify-end'>
               <PaginationContent>
                 <PaginationItem>
-                  <PaginationPrevious onClick={handlePreviousPage} />
+                  <PaginationPrevious 
+                    onClick={handlePreviousPage}
+                    className={page <= 1 ? "pointer-events-none opacity-50" : ""}
+                  />
                 </PaginationItem>
                 <PaginationItem>
-                  <PaginationNext onClick={handleNextPage} />
+                  <PaginationNext 
+                    onClick={handleNextPage}
+                    className={!data || data.total_count <= page * 12 ? "pointer-events-none opacity-50" : ""}
+                  />
                 </PaginationItem>
               </PaginationContent>
             </Pagination>
@@ -85,7 +94,7 @@ function CodeView ({
               </TableHeader>
 
               <TableBody>
-                {codeResults.items.map((item) => (
+                {data.items.map((item) => (
                     <TableRow key={item.repository.id}>
                       <TableCell className="text-left p-4">{item.repository.url}</TableCell>
                       {item.text_matches && item.text_matches.length > 0 ? (
@@ -100,7 +109,7 @@ function CodeView ({
               <TableFooter>
                 <TableRow>
                   <TableCell colSpan={5} className="text-center">
-                    Total Repositories: {codeResults?.total_count}
+                    Total Repositories: {data?.total_count}
                   </TableCell>
                 </TableRow>
               </TableFooter>

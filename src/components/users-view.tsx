@@ -1,20 +1,7 @@
-import type { UserSearchResponse } from '../hooks/search-users';
-import {
-  Table,
-  TableBody,
-  TableCaption,
-  TableCell,
-  TableFooter,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table"
 import {
   Pagination,
   PaginationContent,
-  PaginationEllipsis,
   PaginationItem,
-  PaginationLink,
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination"
@@ -22,35 +9,39 @@ import {
   Card,
   CardAction,
   CardContent,
-  CardDescription,
-  CardFooter,
   CardHeader,
-  CardTitle,
 } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
+import { useState } from "react";
+import { useSearch } from "@/hooks/search"
+import { fetchUsers } from "@/lib/fetcher";
 
 interface UsersSearchProps {
   term: string;
-  userResults: UserSearchResponse | null;
-  loading: boolean;
-  error: Error | null;
-  handleNextPage: (event) => Promise<void>;
-  handlePreviousPage: (event) => Promise<void>;
+  shouldFetch: boolean;
 }
 
-function UsersView ({
-  term,
-  userResults,
-  loading,
-  error,
-  handleNextPage,
-  handlePreviousPage
-}: UsersSearchProps) {
+function UsersView ({ term, shouldFetch }: UsersSearchProps) {
+  const [page, setPage] = useState(1);
+  const { data, isLoading, error } = useSearch(fetchUsers, { key: "github-users", shouldFetch, query: term, per_page: 12, page });
+
+  const handleNextPage = () => {
+    if (data && data.total_count > page * 12) {
+      setPage(prev => prev + 1);
+    }
+  };
+
+  const handlePreviousPage = () => {
+    if (page > 1) {
+      setPage(prev => prev - 1);
+    }
+  };
+
   return (
     <>
       {error && <div className="text-red-500 text-center">Error: {error.message}</div>}
-      {loading && <div className="text-center">Loading...</div>}
-      {userResults && userResults.items && userResults.items.length > 0 && (
+      {isLoading && <div className="text-center">Loading...</div>}
+      {data && data.items && data.items.length > 0 && (
         <div className='my-8'>
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
             <h2 className="text-left text-lg font-semibold">Users Search Results</h2>
@@ -60,17 +51,23 @@ function UsersView ({
             <Pagination className='justify-end'>
               <PaginationContent>
                 <PaginationItem>
-                  <PaginationPrevious onClick={handlePreviousPage} />
+                  <PaginationPrevious 
+                    onClick={handlePreviousPage}
+                    className={page <= 1 ? "pointer-events-none opacity-50" : ""}
+                  />
                 </PaginationItem>
                 <PaginationItem>
-                  <PaginationNext onClick={handleNextPage} />
+                  <PaginationNext 
+                    onClick={handleNextPage}
+                    className={!data || data.total_count <= page * 12 ? "pointer-events-none opacity-50" : ""}
+                  />
                 </PaginationItem>
               </PaginationContent>
             </Pagination>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
-            {userResults.items.map((item) => (
+            {data.items.map((item) => (
               <div key={item.id} className="col-span-1 max-w-sm">
                 <Card className="text-center">
                   <CardHeader>
@@ -98,37 +95,6 @@ function UsersView ({
               </div>
             ))}
           </div>
-
-          {/* <div className='border rounded-xl shadow-sm'>
-            <Table>
-              <TableCaption>Search results for {term}</TableCaption>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>User</TableHead>
-                  <TableHead>Avatar</TableHead>
-                </TableRow>
-              </TableHeader>
-
-              <TableBody>
-                {userResults.items.map((item) => (
-                    <TableRow key={item.id}>
-                      <TableCell className="text-left">{item.login}</TableCell>
-                      <TableCell className="text-left">
-                        <img src={item.avatar_url} alt={item.login} className="w-8 h-8 rounded-full" />
-                      </TableCell>
-                    </TableRow>
-                ))}
-              </TableBody>
-
-              <TableFooter>
-                <TableRow>
-                  <TableCell colSpan={5} className="text-center">
-                    Total Users: {userResults?.total_count}
-                  </TableCell>
-                </TableRow>
-              </TableFooter>
-            </Table>
-          </div> */}
         </div>
       )}
     </>
