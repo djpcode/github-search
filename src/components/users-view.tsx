@@ -171,7 +171,7 @@ function UsersView ({ term, shouldFetch }: UsersSearchProps) {
                       <CardAction>
                         <Dialog>
                           <DialogTrigger asChild>
-                            <Button className='flex'>Open Dialog</Button>
+                            <Button className='flex'>User Details</Button>
                           </DialogTrigger>
 
                           <DialogContent className="sm:max-w-8/10">
