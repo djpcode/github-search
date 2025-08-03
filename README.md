@@ -4,6 +4,7 @@ This is a simple React based app for searching Github via the official API.
 
 This project uses [Vite](https://vite.dev/), [Tailwind CSS](https://tailwindcss.com/) (with CSS variables) and [Shadcn UI](https://ui.shadcn.com/) Components.  
 Requests to the Github API are handled via Github's Octokit REST client, [@octokit/rest](https://www.npmjs.com/package/@octokit/rest)
+and [SWR](https://swr.vercel.app/) for caching and request management.
 
 ## Getting Set Up
 
