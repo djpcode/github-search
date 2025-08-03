@@ -15,6 +15,23 @@ export const fetchUsers = async ({ query, per_page, page }: SearchParams) => {
   return res.data;
 }
 
+export const fetchUser = async ({ query }: SearchParams) => {
+  const res = await octokitClient.rest.users.getByUsername({
+    username: query
+  });
+
+  const userRepos = await octokitClient.rest.repos.listForUser({
+    username: query,
+    type: "owner",
+    per_page: 10,
+  });
+
+  return {
+    ...res.data,
+    repos: userRepos.data
+  };
+}
+
 export const fetchCode = async ({ query, per_page, page }: SearchParams) => {
   const res = await octokitClient.rest.search.code({
     q: `${query} in:file`,

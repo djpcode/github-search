@@ -16,6 +16,7 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination"
+import { Skeleton } from "@/components/ui/skeleton"
 import { useSearch } from "@/hooks/search"
 import { fetchCode } from "@/lib/fetcher";
 
@@ -57,7 +58,65 @@ function CodeView ({ term, shouldFetch }: CodeSearchProps) {
   return (
     <>
       {error && <div className="text-red-500 text-center">Error: {error.message}</div>}
-      {isLoading && <div className="text-center">Loading...</div>}
+      {isLoading && (
+        <>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+            <h2 className="text-left text-lg font-semibold">Code Search Results</h2>
+
+            <span></span>
+
+            <Pagination className='justify-end'>
+              <PaginationContent>
+                <PaginationItem>
+                  <PaginationPrevious 
+                    onClick={handlePreviousPage}
+                    className={page <= 1 ? "pointer-events-none opacity-50" : ""}
+                  />
+                </PaginationItem>
+                <PaginationItem>
+                  <PaginationNext 
+                    onClick={handleNextPage}
+                    className={!data || data.total_count <= page * 12 ? "pointer-events-none opacity-50" : ""}
+                  />
+                </PaginationItem>
+              </PaginationContent>
+            </Pagination>
+          </div>
+
+          <div className='border rounded-xl shadow-sm'>
+            <Table>
+              <TableCaption>Search results for {term}</TableCaption>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className='p-4'>Repository</TableHead>
+                  <TableHead className='p-4'>Text Match</TableHead>
+                </TableRow>
+              </TableHeader>
+
+              <TableBody>
+                {Array(12).fill(null).map((_, index) => (
+                  <TableRow key={index}>
+                    <TableCell className="text-left p-4 w-1/3">
+                      <Skeleton className="h-4 my-1" />
+                    </TableCell>
+                    <TableCell className="text-left whitespace-normal p-4">
+                      <Skeleton className="h-4 my-1" />
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+
+              <TableFooter>
+                <TableRow>
+                  <TableCell colSpan={5} className="text-center">
+                    Total Repositories: {data?.total_count}
+                  </TableCell>
+                </TableRow>
+              </TableFooter>
+            </Table>
+          </div>
+        </>
+      )}
       {data && data.items && data.items.length > 0 && (
         <>
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
@@ -96,7 +155,7 @@ function CodeView ({ term, shouldFetch }: CodeSearchProps) {
               <TableBody>
                 {data.items.map((item) => (
                     <TableRow key={item.repository.id}>
-                      <TableCell className="text-left p-4">{item.repository.url}</TableCell>
+                      <TableCell className="text-left p-4 w-1/3">{item.repository.url}</TableCell>
                       {item.text_matches && item.text_matches.length > 0 ? (
                         <TableCell className="text-left whitespace-normal p-4">{ getHighlightedText(item.text_matches[0].fragment, item.text_matches[0].matches[0].indices) }</TableCell>
                       ) : (

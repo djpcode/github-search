@@ -22,8 +22,8 @@ npm run dev
 ## TODO
 
 - [ ] Add tests
-- [ ] Reduce code duplication
-- [ ] Use SWR to wrap Octokit rest client for better request handling
+- [x] Reduce code duplication
+- [x] Use SWR to wrap Octokit rest client for better request handling
 - [ ] Add more search options
 - [ ] Improve theme and styling
 - [ ] Stricter lint rules

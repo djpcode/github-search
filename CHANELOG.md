@@ -15,6 +15,12 @@ This project uses [Semver](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+### Changed
+
+- Improved data fetching and reduced code duplication with SWR
+
 ### Added
 
+- Added User view dialog for showing user details
+- Added loading skeletons for improved UX
 - Initial working version using Octokit REST client, tailwind and shadcn

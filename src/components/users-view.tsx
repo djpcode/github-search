@@ -15,6 +15,15 @@ import { Button } from "@/components/ui/button"
 import { useState } from "react";
 import { useSearch } from "@/hooks/search"
 import { fetchUsers } from "@/lib/fetcher";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
+import { Skeleton } from "@/components/ui/skeleton"
+import UserView from "./user-view";
 
 interface UsersSearchProps {
   term: string;
@@ -40,7 +49,77 @@ function UsersView ({ term, shouldFetch }: UsersSearchProps) {
   return (
     <>
       {error && <div className="text-red-500 text-center">Error: {error.message}</div>}
-      {isLoading && <div className="text-center">Loading...</div>}
+      {isLoading && (
+        <div className='my-8'>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+            <h2 className="text-left text-lg font-semibold">Users Search Results</h2>
+
+            <span></span>
+
+            <Pagination className='justify-end'>
+              <PaginationContent>
+                <PaginationItem>
+                  <PaginationPrevious 
+                    onClick={handlePreviousPage}
+                    className={page <= 1 ? "pointer-events-none opacity-50" : ""}
+                  />
+                </PaginationItem>
+                <PaginationItem>
+                  <PaginationNext 
+                    onClick={handleNextPage}
+                    className={!data || data.total_count <= page * 12 ? "pointer-events-none opacity-50" : ""}
+                  />
+                </PaginationItem>
+              </PaginationContent>
+            </Pagination>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            {Array(12).fill(null).map((_, index) => (
+              <div key={index} className="col-span-1 max-w-sm">
+                <Card className="text-center">
+                  <CardHeader>
+                    <div className='grid grid-cols-3 gap-4 items-center'>
+                      <div className='col-span-1'>
+                        <Skeleton className="h-25 w-25 rounded-full" />
+                      </div>
+                      <div className='col-span-2'>
+                        <h3 className='text-start text-lg'>
+                          <Skeleton className="h-4 my-1 w-[150px]" />
+                        </h3>
+                        <h4 className='text-start'>
+                          <Skeleton className="h-4 my-1 w-[150px]" />
+                        </h4>
+                      </div>
+                    </div>
+                  </CardHeader>
+
+                  <CardContent>
+                    <div className='flex flex-row gap-2'>
+                      <CardAction>
+                        <Skeleton className="h-10 my-1 w-[150px]" />
+                      </CardAction>
+                      <CardAction>
+                        <Dialog>
+                          <DialogTrigger asChild>
+                            <Skeleton className="h-10 my-1 w-[150px]" />
+                          </DialogTrigger>
+
+                          <DialogContent className="sm:max-w-8/10">
+                            <DialogHeader>
+                              <DialogTitle><Skeleton className="h-4 my-1 w-[150px]" /></DialogTitle>
+                            </DialogHeader>
+                          </DialogContent>
+                        </Dialog>
+                      </CardAction>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
       {data && data.items && data.items.length > 0 && (
         <div className='my-8'>
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
@@ -83,11 +162,26 @@ function UsersView ({ term, shouldFetch }: UsersSearchProps) {
                   </CardHeader>
 
                   <CardContent>
-                    <div className='flex'>
-                      <CardAction className="grow">
+                    <div className='flex flex-row gap-2'>
+                      <CardAction>
                         <Button className='flex' asChild>
                           <a href={item.html_url}>View on Github</a>
                         </Button>
+                      </CardAction>
+                      <CardAction>
+                        <Dialog>
+                          <DialogTrigger asChild>
+                            <Button className='flex'>Open Dialog</Button>
+                          </DialogTrigger>
+
+                          <DialogContent className="sm:max-w-8/10">
+                            <DialogHeader>
+                              <DialogTitle>{item.login}</DialogTitle>
+                            </DialogHeader>
+                            
+                            <UserView term={item.login} shouldFetch={true} />
+                          </DialogContent>
+                        </Dialog>
                       </CardAction>
                     </div>
                   </CardContent>
