@@ -20,7 +20,9 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { useSearch } from "@/hooks/search"
 import { fetchCode } from "@/lib/fetcher";
 
-function getHighlightedText(fragment: string, indices: number[]) {
+function getHighlightedText(fragment?: string, indices?: number[]) {
+  if (!fragment || !indices ) return <span className="bg-highlight text-highlight-foreground p-1 rounded-md">...</span>;
+
   const start = fragment.substring(0, indices[0]).slice(-50);
   const middle = fragment.substring(indices[0], indices[1]);
   const end = fragment.substring(indices[1]).slice(0, 50);
@@ -157,7 +159,13 @@ function CodeView ({ term, shouldFetch }: CodeSearchProps) {
                     <TableRow key={item.repository.id}>
                       <TableCell className="text-left p-4 w-1/3">{item.repository.url}</TableCell>
                       {item.text_matches && item.text_matches.length > 0 ? (
-                        <TableCell className="text-left whitespace-normal p-4">{ getHighlightedText(item.text_matches[0].fragment, item.text_matches[0].matches[0].indices) }</TableCell>
+                        
+                        <TableCell className="text-left whitespace-normal p-4">
+                          {
+                            // @ts-expect-error because text_matches is optional
+                            getHighlightedText(item.text_matches[0].fragment, item.text_matches[0].matches[0].indices)
+                          }
+                        </TableCell>
                       ) : (
                         <TableCell className="text-left p-4">No match found</TableCell>
                       )}

@@ -1,11 +1,3 @@
-import {
-  Pagination,
-  PaginationContent,
-  PaginationItem,
-  PaginationNext,
-  PaginationPrevious,
-} from "@/components/ui/pagination"
-
 import { useSearch } from "@/hooks/search"
 import { fetchUser } from "@/lib/fetcher";
 import {

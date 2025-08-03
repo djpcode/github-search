@@ -10,8 +10,8 @@ and [SWR](https://swr.vercel.app/) for caching and request management.
 
 To get the app up and running, simply git clone the repository:
 ```sh
-git clone ...
-cd ...
+git clone git@github.com:djpcode/github-search.git
+cd github-search
 ```
 
 Then install dependencies and start the server:
